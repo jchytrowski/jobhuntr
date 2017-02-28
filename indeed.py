@@ -36,7 +36,8 @@ def search_indeed(
 
 	
 	for child in root.iter(tag='result'):
-	
+
+		company=child.find('company')	
 		listing=child.find('jobtitle')
 		url=child.find('url')
 		snippet=child.find('snippet')
@@ -46,11 +47,8 @@ def search_indeed(
 		if jobkey is None:
 			continue
 
-		listings[jobkey.text]=[listing.text,url.text,location.text]
+		listings[jobkey.text]=[listing.text.encode('utf8'),url.text,location.text,snippet.text.encode('utf8'),company.text]
 
-
-		#for listing in child:
-		#	print listing.tag	
 
 	return listings
 
