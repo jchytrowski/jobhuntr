@@ -2,8 +2,45 @@
 
 
 import argparse
-
+import pickle
 import indeed
+import os.path
+
+
+class archive:
+
+	# an archive is useful if we want to run this as a chron job, and dont
+	# want prior results displayed again
+	# Eventually, maybe we'll figure out a low effort means of tracking 
+	# what i've actually applied to or dismissed, instead of just 'viewed'	
+
+        def __init__(self):
+		self.class_archive={}
+		if os.path.isfile('archive.pkl'):
+			with open('archive.pkl', 'r') as file:
+				self.class_archive=pickle.load(file)	
+
+        def push_archive(self,url):
+		self.class_archive[url]=True
+
+	def query_archive(self,url):
+		if str(url) in self.class_archive.keys():
+			'''kinda redundant; we only store true, so if there- 
+			is a key, then that implies the key is True; still,
+			simply checking for the existance of a key seems sloppy.
+			This way, we can later revert values to false 
+			(in case we want to later revert/change behavior,
+			or perhaps store a 'last viewed' instead of a bool?)
+			'''
+			return self.class_archive[url]
+		#else:
+		#	return False
+
+
+	def commit(self):
+		with open('archive.pkl', 'w') as handle:
+			pickle.dump(self.class_archive,handle)
+
 
 
 def thresher(listings, filter_terms):
@@ -24,13 +61,14 @@ def thresher(listings, filter_terms):
 def main():
 
 	main_list=[]
-
 	#just in case I want to add flags later...
 	parser = argparse.ArgumentParser(description="Template script tool")
 	parser.add_argument('-f', help='takes arbitrary input')
 	parser.add_argument('-b', action='store_true', help='binary flag')
 	args=parser.parse_args()
-	
+
+	#lets keep track of what we've already applied to	
+	history=archive()	
 
 	filter_terms=open('filter_terms.txt')	
 	search_terms=open('terms.txt')
@@ -50,6 +88,8 @@ def main():
 	search_terms.close()
 	areas.close()
 		
+	
+
 
 	for jobset in main_list:
 		for listing in jobset:
@@ -58,12 +98,24 @@ def main():
 			location=jobset[listing][2]
 			snippet=jobset[listing][3]
 			company=jobset[listing][4]
+
+			if history.query_archive(url):
+				
+				sys.exit(1)
+			else:
+				print 'query archive is %s' % history.query_archive(url)
+				history.push_archive(url)
+
 			print '''%s 
 %s  -- %s
 %s
 %s
 
 ''' % (title, company, location, snippet, url)		
+
+	#save
+	history.commit()	
+
 
 if __name__ == "__main__":
         main()
