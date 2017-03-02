@@ -20,11 +20,17 @@ class archive:
 			with open('archive.pkl', 'r') as file:
 				self.class_archive=pickle.load(file)	
 
+			i=0
+			for key in self.class_archive.keys():
+				i+=1			
+	
+
         def push_archive(self,url):
-		self.class_archive[url]=True
+		self.class_archive[str(url)]=True
 
 	def query_archive(self,url):
-		if str(url) in self.class_archive.keys():
+
+		if url in self.class_archive:
 			'''kinda redundant; we only store true, so if there- 
 			is a key, then that implies the key is True; still,
 			simply checking for the existance of a key seems sloppy.
@@ -32,9 +38,10 @@ class archive:
 			(in case we want to later revert/change behavior,
 			or perhaps store a 'last viewed' instead of a bool?)
 			'''
+			
 			return self.class_archive[url]
-		#else:
-		#	return False
+		else:
+			return False
 
 
 	def commit(self):
@@ -90,7 +97,6 @@ def main():
 		
 	
 
-
 	for jobset in main_list:
 		for listing in jobset:
 			title=jobset[listing][0]
@@ -100,18 +106,11 @@ def main():
 			company=jobset[listing][4]
 
 			if history.query_archive(url):
-				
-				sys.exit(1)
+				continue
 			else:
-				print 'query archive is %s' % history.query_archive(url)
 				history.push_archive(url)
 
-			print '''%s 
-%s  -- %s
-%s
-%s
-
-''' % (title, company, location, snippet, url)		
+			print '%s \n%s  -- %s\n%s\n%s\n\n' % (title, company, location, snippet, url)		
 
 	#save
 	history.commit()	

@@ -1,8 +1,7 @@
 import requests
 import os
 import xml.etree.ElementTree as eTree
-
-
+import re
 
 def search_indeed(
 	query_str, 
@@ -37,17 +36,20 @@ def search_indeed(
 	
 	for child in root.iter(tag='result'):
 
-		company=child.find('company')	
-		listing=child.find('jobtitle')
-		url=child.find('url')
-		snippet=child.find('snippet')
-		location=child.find('formattedLocationFull')
-		jobkey=child.find('jobkey')		
+		company=child.find('company').text.encode('utf8')
+		listing=child.find('jobtitle').text.encode('utf8')
+		url_unclean=child.find('url').text.encode('utf8')
+		''' 'http://[./a-z0-9?=]+' regex finds up until first &; generally this includes jobkey'''
+	
+		url=re.search('http://[./a-z0-9?=]+', url_unclean).group(0)
+		snippet=child.find('snippet').text.encode('utf8')
+		location=child.find('formattedLocationFull').text.encode('utf8')
+		jobkey=child.find('jobkey').text.encode('utf8')
 
 		if jobkey is None:
 			continue
 
-		listings[jobkey.text]=[listing.text.encode('utf8'),url.text,location.text,snippet.text.encode('utf8'),company.text]
+		listings[jobkey]=[listing,url,location,snippet,company]
 
 
 	return listings
