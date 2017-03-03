@@ -4,7 +4,7 @@
 import argparse
 import pickle
 import indeed
-import os.path
+import os
 import notifier
 
 class archive:
@@ -16,8 +16,9 @@ class archive:
 
         def __init__(self):
 		self.class_archive={}
-		if os.path.isfile('archive.pkl'):
-			with open('archive.pkl', 'r') as file:
+		self.home=os.environ['HOME']+'/jobhuntr/'
+		if os.path.isfile(self.home+'archive.pkl'):
+			with open(self.home+'archive.pkl', 'r') as file:
 				self.class_archive=pickle.load(file)	
 
 			i=0
@@ -45,9 +46,9 @@ class archive:
 
 
 	def commit(self):
-		with open('archive.pkl', 'w') as handle:
+		with open(self.home+'archive.pkl', 'w') as handle:
 			pickle.dump(self.class_archive,handle)
-
+			handle.close()
 
 
 def thresher(listings, filter_terms):
@@ -77,9 +78,10 @@ def main():
 	#lets keep track of what we've already applied to	
 	history=archive()	
 
-	filter_terms=open('filter_terms.txt')	
-	search_terms=open('terms.txt')
-	areas=open('zipcodes.txt')
+	cwd=os.environ['HOME']+'/jobhuntr/'
+	filter_terms=open(cwd+'filter_terms.txt')	
+	search_terms=open(cwd+'terms.txt')
+	areas=open(cwd+'zipcodes.txt')
 	filter_terms_list=[]
 	
 	for term in filter_terms.read().splitlines():
@@ -97,20 +99,6 @@ def main():
 		
 	
 	notifier.sendNotice(main_list,history)
-#	for jobset in main_list:q
-#		for listing in jobset:
-#			title=jobset[listing][0]
-#			url=jobset[listing][1]
-#			location=jobset[listing][2]
-#			snippet=jobset[listing][3]
-#			company=jobset[listing][4]
-#
-#			if history.query_archive(url):
-#				continue
-#			else:
-#				history.push_archive(url)
-#
-#			print '%s \n%s  -- %s\n%s\n%s\n\n' % (title, company, location, snippet, url)		
 
 	#save
 	history.commit()	

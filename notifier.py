@@ -18,18 +18,15 @@ def sendNotice(main_list,history):
 
 	# Create message container - the correct MIME type is multipart/alternative.
 	msg = MIMEMultipart('alternative')
-	msg['Subject'] = "Link"
+	msg['Subject'] = "Jobs"
 	msg['From'] = me
 	msg['To'] = you
 
 	# Create the body of the message (a plain-text and an HTML version).
 
-	newHTML="""\
-        <html>
-          <head></head>
-          <body>"""
+	newHTML="<html><head></head><body>"
 	
-
+	send_flag=False
 	for jobset in main_list:
                 for listing in jobset:
                         title=jobset[listing][0]
@@ -41,6 +38,7 @@ def sendNotice(main_list,history):
                         if history.query_archive(url):
                                 continue
                         else:
+				send_flag=True
                                 history.push_archive(url)
 				
 				entry='<p><a href="%s">%s</a><br> %s -- %s<br>%s</p>'					% (url, title, company, location, snippet)
@@ -51,19 +49,11 @@ def sendNotice(main_list,history):
 
                         #print '%s \n%s  -- %s\n%s\n%s\n\n' % (title, company, location, snippet, url)
 
+	if not send_flag:
+		print 'nothing to see'
+		return False
 
-	text = "Hi!\nHow are you?\nHere is the link you wanted:\nhttps://www.python.org"
-	html = """\
-	<html>
-	  <head></head>
-	  <body>
-	    <p>Hi!<br>
-	       How are you?<br>
-	       Here is the <a href="https://www.python.org">link</a> you wanted.
-	    </p>
-	  </body>
-	</html>
-	"""
+	text = "If you're reading this, then the HTML portion failed; How sad."
 
 	# Record the MIME types of both parts - text/plain and text/html.
 	part1 = MIMEText(text, 'plain')
@@ -81,4 +71,5 @@ def sendNotice(main_list,history):
 	# and message to send - here it is sent as one string.
 	s.sendmail(me, you, msg.as_string())
 	s.quit()
+	return True
 
