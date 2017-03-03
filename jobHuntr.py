@@ -5,7 +5,7 @@ import argparse
 import pickle
 import indeed
 import os.path
-
+import notifier
 
 class archive:
 
@@ -96,21 +96,21 @@ def main():
 	areas.close()
 		
 	
-
-	for jobset in main_list:
-		for listing in jobset:
-			title=jobset[listing][0]
-			url=jobset[listing][1]
-			location=jobset[listing][2]
-			snippet=jobset[listing][3]
-			company=jobset[listing][4]
-
-			if history.query_archive(url):
-				continue
-			else:
-				history.push_archive(url)
-
-			print '%s \n%s  -- %s\n%s\n%s\n\n' % (title, company, location, snippet, url)		
+	notifier.sendNotice(main_list,history)
+#	for jobset in main_list:q
+#		for listing in jobset:
+#			title=jobset[listing][0]
+#			url=jobset[listing][1]
+#			location=jobset[listing][2]
+#			snippet=jobset[listing][3]
+#			company=jobset[listing][4]
+#
+#			if history.query_archive(url):
+#				continue
+#			else:
+#				history.push_archive(url)
+#
+#			print '%s \n%s  -- %s\n%s\n%s\n\n' % (title, company, location, snippet, url)		
 
 	#save
 	history.commit()	
