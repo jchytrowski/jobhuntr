@@ -84,11 +84,12 @@ def main():
 	areas=open(cwd+'zipcodes.txt')
 	filter_terms_list=[]
 	
-	for term in filter_terms.read().splitlines():
+	for term in filter_terms.read().splitlines().lower():
 		filter_terms_list.append(term)
 
-	for term in search_terms.readlines():
-		for location in areas.readlines(): 
+	for term in search_terms.readlines().lower():
+		for location in areas.readlines().lower(): 
+			#indeed section
 			results=indeed.search_indeed(term,2,int(location))
 			results=thresher(results,filter_terms_list)
 			main_list.append(results)
@@ -98,10 +99,11 @@ def main():
 	areas.close()
 		
 	
-	notifier.sendNotice(main_list,history)
+	received=notifier.sendNotice(main_list,history)
 
 	#save
-	history.commit()	
+	if received:
+		history.commit()	
 
 
 if __name__ == "__main__":
