@@ -2,7 +2,8 @@ import requests
 import os
 import xml.etree.ElementTree as eTree
 import re
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
+#from BeautifulSoup import BeautifulSoup
 
 def strip_summary(url):
 	response=requests.get(url)
@@ -12,15 +13,19 @@ def strip_summary(url):
 	snippets=soup.find('td', {"class":"snip"})
 	return snippets
 
+
 def strip_paragraph(soup_tag, paragraph_index):
-	if type(soup_tag) is not 'BeautifulSoup.Tag':
-		raise TypeError("strip_paragraph requires beautifulSoup tag attribute!, was passed %s" % type(soup_tag) )
-	paragraphs=soup_tag.findAll('p')
-	
+	paragraphs=list(soup_tag.stripped_strings)
 	if len(paragraphs) > 0:
-		return paragraphs[paragraph_index]
+		#mystr=list(paragraphs)[paragraph_index].encode('utf8', errors='ignore')
+		return list(paragraphs)[paragraph_index].encode('utf8', errors='ignore')
 	else:
-		raise LookupError("strip_paragraph did not match anything")
+		return "No <p> tags in this post......"
+		#used to throw error, but some people just suck at formatting their listings
+
+
+
+
 
 
 def search_indeed(
@@ -30,7 +35,7 @@ def search_indeed(
 	location='Novato, Ca', 		#we primarily use zip, #but will add switch later...
 	radius=30,			#geo radius (miles?)		
 	start=0,			#index of first result (necessary for queries over 'limit'?)'''
-	limit=50,			#results per response
+	limit=5,			#results per response
 
 	fromage=1, 			#max_age of posts in days
 	userip='138.68.31.216',		#just gonna use personal ip for now...
@@ -69,9 +74,11 @@ def search_indeed(
 		snippet=child.find('snippet').text.encode('utf8')
 		location=child.find('formattedLocationFull').text.encode('utf8')
 		jobkey=child.find('jobkey').text.encode('utf8')
-
+	
+		'''the builtin snippet sucks, so let's use the first
+		paragraph instead'''
 		post_body=strip_summary(url)
-		first_p=strip_paragraph(post_body, 0)		
+		snippet=strip_paragraph(post_body, 0)		
 
 		if jobkey is None:
 			continue
@@ -81,6 +88,3 @@ def search_indeed(
 
 	return listings
 
-post_body=strip_summary('https://www.indeed.com/viewjob?jk=531b16b391a924c0')
-first_p=strip_paragraph(post_body, 0)
-print first_p
