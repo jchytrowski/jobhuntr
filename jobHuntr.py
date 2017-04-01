@@ -14,17 +14,23 @@ class archive:
 	# Eventually, maybe we'll figure out a low effort means of tracking 
 	# what i've actually applied to or dismissed, instead of just 'viewed'	
 
-        def __init__(self):
+        def __init__(self,path=os.environ['HOME']+'/jobhuntr/'):
 		self.class_archive={}
-		self.home=os.environ['HOME']+'/jobhuntr/'
+		self.home=path
 		if os.path.isfile(self.home+'archive.pkl'):
 			with open(self.home+'archive.pkl', 'r') as file:
 				self.class_archive=pickle.load(file)	
 
-			i=0
-			for key in self.class_archive.keys():
-				i+=1			
-	
+
+	def set_working_dir(self,path):
+		assert os.path.exists(path)
+		if not path.endswith('/'):
+			path=path+'/'
+		self.home=path	
+		self.class_archive={}
+		if os.path.isfile(self.home+'archive.pkl'):
+                        with open(self.home+'archive.pkl', 'r') as file:
+                                self.class_archive=pickle.load(file)
 
         def push_archive(self,url):
 		self.class_archive[str(url)]=True
@@ -73,28 +79,39 @@ def main():
 	parser = argparse.ArgumentParser(description="Template script tool")
 	parser.add_argument('-f', help='takes arbitrary input')
 	parser.add_argument('-b', action='store_true', help='binary flag')
+	parser.add_argument('-d', help='target dir')
 	args=parser.parse_args()
 
-	#lets keep track of what we've already applied to	
-	history=archive()	
+	#lets sd;lkjfkeep track of what we've already applied to	
+	if args.d:
+		cwd=args.d
+		if not cwd.endswith('/'):
+			cwd=cwd+'/'
+			history=archive(path=cwd)
+	else:
+		history=archive()	
 
-	cwd=os.environ['HOME']+'/jobhuntr/'
-	filter_terms=open(cwd+'filter_terms.txt')	
+	cwd=history.home
+
+	filter_terms_file=open(cwd+'filter_terms.txt')	
 	search_terms=open(cwd+'terms.txt')
 	areas=open(cwd+'zipcodes.txt')
 	filter_terms_list=[]
 	
-	for term in filter_terms.read().splitlines().lower():
+	for term in filter_terms_file.read().splitlines():
+		term=term.lower()
 		filter_terms_list.append(term)
 
-	for term in search_terms.readlines().lower():
-		for location in areas.readlines().lower(): 
+	for term in search_terms.readlines():
+		term=term.lower()
+		for location in areas.readlines(): 
 			#indeed section
-			results=indeed.search_indeed(term,2,int(location))
+			location=location.lower()
+			results=indeed.search_indeed(term,radius=100,fromage=30,limit=50,ZIP=int(location))
 			results=thresher(results,filter_terms_list)
 			main_list.append(results)
 
-	filter_terms.close()
+	filter_terms_file.close()
 	search_terms.close()
 	areas.close()
 		
@@ -104,7 +121,7 @@ def main():
 	#save
 	if received:
 		history.commit()	
-
+	return True
 
 if __name__ == "__main__":
         main()
